@@ -1,0 +1,250 @@
+{
+    "title": "Anomaly Insights",
+    "description": "",
+    "inputs": {
+        "input_global_trp": {
+            "options": {
+                "defaultValue": "-24h@h,now",
+                "token": "global_time"
+            },
+            "title": "Global Time Range",
+            "type": "input.timerange"
+        }
+    },
+    "defaults": {
+        "dataSources": {
+            "ds.search": {
+                "options": {
+                    "queryParameters": {
+                        "earliest": "$global_time.earliest$",
+                        "latest": "$global_time.latest$"
+                    }
+                }
+            }
+        }
+    },
+    "visualizations": {
+        "viz_3Zcc9Fg7": {
+            "dataSources": {
+                "primary": "ds_267ika8Q"
+            },
+            "options": {},
+            "type": "splunk.line"
+        },
+        "viz_LJAiq3kR": {
+            "dataSources": {
+                "primary": "ds_fKxqa359"
+            },
+            "options": {
+                "backgroundColor": "#000000"
+            },
+            "title": "Recent Events with High Scores",
+            "type": "splunk.column"
+        },
+        "viz_Pnkyd1bf": {
+            "dataSources": {
+                "primary": "ds_lf1DSOQV"
+            },
+            "options": {
+                "seriesColors": [
+                    "#00CDAF",
+                    "#00490A",
+                    "#7B56DB",
+                    "#009CEB",
+                    "#DD9900",
+                    "#FF677B",
+                    "#CB2196",
+                    "#813193",
+                    "#0051B5",
+                    "#008C80",
+                    "#99B100",
+                    "#FFA476",
+                    "#FF6ACE",
+                    "#AE8CFF",
+                    "#00689D",
+                    "#465D00",
+                    "#9D6300",
+                    "#F6540B",
+                    "#FF969E",
+                    "#E47BFE"
+                ]
+            },
+            "type": "splunk.column"
+        },
+        "viz_wgJpravX": {
+            "containerOptions": {},
+            "dataSources": {
+                "primary": "ds_LW2zxkSF"
+            },
+            "options": {
+                "backgroundColor": "#294e70",
+                "tableFormat": {
+                    "headerBackgroundColor": "> backgroundColor | setColorChannel(tableHeaderBackgroundColorConfig)",
+                    "headerColor": "> headerBackgroundColor | maxContrast(tableRowColorMaxContrast)",
+                    "rowBackgroundColors": "> table | seriesByIndex(0) | pick(tableAltRowBackgroundColorsByBackgroundColor)",
+                    "rowColors": "> rowBackgroundColors | maxContrast(tableRowColorMaxContrast)"
+                }
+            },
+            "showLastUpdated": false,
+            "showProgressBar": false,
+            "type": "splunk.table"
+        },
+        "viz_xPLJgZqo": {
+            "containerOptions": {},
+            "context": {},
+            "dataSources": {
+                "primary": "ds_ljImqIWD"
+            },
+            "options": {},
+            "showLastUpdated": false,
+            "showProgressBar": false,
+            "type": "splunk.markergauge"
+        },
+        "viz_xoLUwihV": {
+            "dataSources": {
+                "primary": "ds_Hxajgz4V"
+            },
+            "options": {
+                "backgroundColor": "#342370",
+                "showInternalFields": false,
+                "tableFormat": {
+                    "headerBackgroundColor": "> backgroundColor | setColorChannel(tableHeaderBackgroundColorConfig)",
+                    "headerColor": "> headerBackgroundColor | maxContrast(tableRowColorMaxContrast)",
+                    "rowBackgroundColors": "> table | seriesByIndex(0) | pick(tableAltRowBackgroundColorsByBackgroundColor)",
+                    "rowColors": "> rowBackgroundColors | maxContrast(tableRowColorMaxContrast)"
+                }
+            },
+            "title": "Recent Events with High Scores",
+            "type": "splunk.table"
+        }
+    },
+    "dataSources": {
+        "ds_267ika8Q": {
+            "name": "AnomalyTrend",
+            "options": {
+                "query": "| from datamodel:\"Anomalous_Events\".\"Anomaly_Detection_Events\"\r\n| where anomaly_score > 0.8\r\n| timechart avg(anomaly_score) as \"Avg Score\" by host\r\n"
+            },
+            "type": "ds.search"
+        },
+        "ds_Hxajgz4V": {
+            "name": "RecentEvents",
+            "options": {
+                "query": "| from datamodel:\"Anomalous_Events\".\"Anomaly_Detection_Events\"\r\n| where anomaly_score > 0.8\r\n| table _time, host, anomaly_score\r\n| sort -_time\r\n"
+            },
+            "type": "ds.search"
+        },
+        "ds_LW2zxkSF": {
+            "name": "AnomalousIPEvents",
+            "options": {
+                "query": "| from datamodel:\"Anomalous_Events\".\"Anomaly_Detection_Events\"\r\n| where anomaly_score > 0.8\r\n| table _time, host, src_ip, anomaly_score, model, severity\r\n| sort - _time\r\n"
+            },
+            "type": "ds.search"
+        },
+        "ds_fKxqa359": {
+            "name": "TopHosts",
+            "options": {
+                "query": "| from datamodel:\"Anomalous_Events\".\"Anomaly_Detection_Events\"\r\n| where anomaly_score > 0.8\r\n| top host limit=10\r\n"
+            },
+            "type": "ds.search"
+        },
+        "ds_lf1DSOQV": {
+            "name": "ScoreDist",
+            "options": {
+                "query": "| from datamodel:\"Anomalous_Events\".\"Anomaly_Detection_Events\"\r\n| bin anomaly_score span=0.05\r\n| stats count by anomaly_score\r\n"
+            },
+            "type": "ds.search"
+        },
+        "ds_ljImqIWD": {
+            "name": "Alertingthreshold",
+            "options": {
+                "query": "| from datamodel:\"Anomalous_Events\".\"Anomaly_Detection_Events\"\r\n| where anomaly_score > 0.8\r\n| timechart count by src_ip limit=5\r\n"
+            },
+            "type": "ds.search"
+        }
+    },
+    "layout": {
+        "globalInputs": [
+            "input_global_trp"
+        ],
+        "layoutDefinitions": {
+            "layout_1": {
+                "options": {
+                    "height": 960,
+                    "width": 1440
+                },
+                "structure": [
+                    {
+                        "item": "viz_xoLUwihV",
+                        "position": {
+                            "h": 502,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 0
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_3Zcc9Fg7",
+                        "position": {
+                            "h": 400,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 502
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_LJAiq3kR",
+                        "position": {
+                            "h": 400,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 902
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_Pnkyd1bf",
+                        "position": {
+                            "h": 400,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 1302
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_wgJpravX",
+                        "position": {
+                            "h": 291,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 1702
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_xPLJgZqo",
+                        "position": {
+                            "h": 400,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 1993
+                        },
+                        "type": "block"
+                    }
+                ],
+                "type": "grid"
+            }
+        },
+        "options": {},
+        "tabs": {
+            "items": [
+                {
+                    "label": "New tab",
+                    "layoutId": "layout_1"
+                }
+            ]
+        }
+    }
+}
