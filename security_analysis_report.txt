@@ -1,0 +1,58 @@
+WEB SERVER SECURITY ANALYSIS REPORT
+==================================================
+
+BASIC STATISTICS:
+Total requests: 137,508
+Unique IPs: 5,912
+Date range: 2021-11-30 15:08:14+03:00 to 2021-12-31 15:15:12+03:00
+Total errors: 7,844 (5.7%)
+
+ATTACK PATTERNS DETECTED:
+SQL Injection: 9,598
+Directory Traversal: 8
+Admin Access Attempts: 2,008
+Suspicious Extensions: 4,715
+Client Errors (4xx): 7,831
+Server Errors (5xx): 13
+Bot Traffic: 37,434
+Curl Requests: 2
+
+TOP 10 SUSPICIOUS IPs:
+146.70.29.183: 364 requests, 98.9% error rate, suspicion score: 0.497
+185.200.117.167: 364 requests, 98.9% error rate, suspicion score: 0.497
+91.223.242.222: 792 requests, 0.0% error rate, suspicion score: 0.490
+81.209.177.145: 127 requests, 87.4% error rate, suspicion score: 0.484
+193.58.179.44: 84 requests, 100.0% error rate, suspicion score: 0.468
+37.44.198.175: 83 requests, 100.0% error rate, suspicion score: 0.466
+185.175.159.84: 81 requests, 100.0% error rate, suspicion score: 0.462
+45.151.232.197: 79 requests, 100.0% error rate, suspicion score: 0.458
+95.46.114.122: 76 requests, 100.0% error rate, suspicion score: 0.452
+148.251.190.243: 369 requests, 81.3% error rate, suspicion score: 0.445
+
+BRUTE FORCE ATTEMPTS:
+Found 5 potential brute force attempts
+118.24.125.81 at 2021-12-16 08:00:00+03:00: 37 requests, 0 failed auth
+121.11.117.118 at 2021-12-05 13:00:00+03:00: 37 requests, 0 failed auth
+125.91.105.227 at 2021-12-16 04:00:00+03:00: 37 requests, 0 failed auth
+175.27.164.4 at 2021-12-03 16:00:00+03:00: 37 requests, 0 failed auth
+210.16.189.15 at 2021-12-12 01:00:00+03:00: 37 requests, 0 failed auth
+
+TOP ERROR PAGES:
+/xmlrpc.php: 1209 errors
+/robots.txt: 328 errors
+/wp-login.php: 200 errors
+/: 127 errors
+/ads.txt: 115 errors
+/wp-admin/admin-ajax.php: 70 errors
+/%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3/rampi-perepuskn/: 32 errors
+/%D1%82%D0%BE%D0%B2%D0%B0%D1%80/gorelki_zakal/%D0%B3%D0%B0%D0%B7%D0%BE%D0%BA%D0%B8%D1%81%D0%BB%D0%BE%D1%80%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F-%D0%BF%D1%80%D0%BE%D0%BF%D0%B0%D0%BD%D0%BE%D0%B2%D0%B0%D1%8F-%D0%B3%D0%BE%D1%80%D0%B5%D0%BB%D0%BA%D0%B0/: 26 errors
+/wp-admin/css/: 22 errors
+/%D1%82%D0%BE%D0%B2%D0%B0%D1%80/ventili_balllon/001vent-kis/: 22 errors
+
+SECURITY RECOMMENDATIONS:
+1. Monitor and potentially block the suspicious IPs listed above
+2. Implement rate limiting for authentication endpoints
+3. Set up real-time alerts for SQL injection attempts
+4. Review and secure admin access endpoints
+5. Consider implementing a Web Application Firewall (WAF)
+6. Regular security audits and penetration testing

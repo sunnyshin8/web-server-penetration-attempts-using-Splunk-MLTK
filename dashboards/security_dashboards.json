@@ -1,0 +1,360 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "name": "Dashboard: Web Server Security Overview",
+            "title": "Web Server Security Analysis Dashboard",
+            "description": "Comprehensive security monitoring dashboard for web server penetration attempts",
+            "definition": {
+                "dataSources": {
+                    "primary": {
+                        "type": "splunk.search",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | head 10000",
+                            "queryParameters": {
+                                "earliest": "-24h@h",
+                                "latest": "now"
+                            }
+                        }
+                    }
+                },
+                "layout": {
+                    "type": "absolute",
+                    "options": {
+                        "width": 1440,
+                        "height": 960
+                    },
+                    "structure": [
+                        {
+                            "item": "viz_attack_overview",
+                            "type": "block",
+                            "position": {
+                                "x": 20,
+                                "y": 20,
+                                "w": 1400,
+                                "h": 120
+                            }
+                        },
+                        {
+                            "item": "viz_attack_timeline",
+                            "type": "block",
+                            "position": {
+                                "x": 20,
+                                "y": 160,
+                                "w": 700,
+                                "h": 300
+                            }
+                        },
+                        {
+                            "item": "viz_top_attackers",
+                            "type": "block",
+                            "position": {
+                                "x": 740,
+                                "y": 160,
+                                "w": 680,
+                                "h": 300
+                            }
+                        },
+                        {
+                            "item": "viz_attack_patterns",
+                            "type": "block",
+                            "position": {
+                                "x": 20,
+                                "y": 480,
+                                "w": 460,
+                                "h": 300
+                            }
+                        },
+                        {
+                            "item": "viz_geographical_attacks",
+                            "type": "block",
+                            "position": {
+                                "x": 500,
+                                "y": 480,
+                                "w": 460,
+                                "h": 300
+                            }
+                        },
+                        {
+                            "item": "viz_response_codes",
+                            "type": "block",
+                            "position": {
+                                "x": 980,
+                                "y": 480,
+                                "w": 440,
+                                "h": 300
+                            }
+                        },
+                        {
+                            "item": "viz_recent_alerts",
+                            "type": "block",
+                            "position": {
+                                "x": 20,
+                                "y": 800,
+                                "w": 1400,
+                                "h": 140
+                            }
+                        }
+                    ]
+                },
+                "visualizations": {
+                    "viz_attack_overview": {
+                        "type": "splunk.singlevalue",
+                        "title": "Security Metrics Overview",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | stats count as total_requests, sum(eval(if(status>=400,1,0))) as error_requests, dc(src_ip) as unique_ips, sum(eval(if(match(uri_path, \"(?i)(admin|login)\"),1,0))) as auth_attempts, sum(eval(if(match(uri_path, \"(?i)(union|select)\"),1,0))) as sql_injection_attempts | eval error_rate=round(error_requests/total_requests*100,2), attack_rate=round((auth_attempts+sql_injection_attempts)/total_requests*100,4)",
+                            "visualizationType": "singlevalue"
+                        }
+                    },
+                    "viz_attack_timeline": {
+                        "type": "splunk.line",
+                        "title": "Attack Attempts Over Time",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | eval attack_indicator=if(match(uri_path, \"(?i)(union|select|admin|login|\\.\\./|script)\") OR status IN (\"401\",\"403\",\"404\"), \"Attack\", \"Normal\") | bucket _time span=1h | stats count by _time, attack_indicator | xyseries _time attack_indicator count | fillnull value=0"
+                        }
+                    },
+                    "viz_top_attackers": {
+                        "type": "splunk.table",
+                        "title": "Top Suspicious IP Addresses",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where status>=400 OR match(uri_path, \"(?i)(admin|login|sql|script)\") | stats count as attack_count, dc(uri_path) as unique_paths, values(status) as status_codes by src_ip | sort -attack_count | head 10"
+                        }
+                    },
+                    "viz_attack_patterns": {
+                        "type": "splunk.pie",
+                        "title": "Attack Pattern Distribution",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | eval attack_type=case(match(uri_path, \"(?i)(union|select|insert|update|delete)\"), \"SQL Injection\", match(uri_path, \"(\\\\.\\\\./|\\\\.\\\\.)%2f\"), \"Directory Traversal\", match(uri_path, \"(?i)(admin|wp-admin|phpmyadmin)\"), \"Admin Access\", status IN (\"401\",\"403\") AND match(uri_path, \"(?i)(login|auth)\"), \"Brute Force\", match(uri_path, \"(?i)(script|alert|javascript)\"), \"XSS Attempt\", 1=1, \"Other\") | stats count by attack_type | where attack_type != \"Other\""
+                        }
+                    },
+                    "viz_geographical_attacks": {
+                        "type": "splunk.choropleth",
+                        "title": "Attack Sources by Country",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where status>=400 OR match(uri_path, \"(?i)(admin|login|sql)\") | iplocation src_ip | stats count by Country | geom geo_countries featureIdField=Country"
+                        }
+                    },
+                    "viz_response_codes": {
+                        "type": "splunk.bar",
+                        "title": "HTTP Response Code Distribution",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | stats count by status | sort -count | head 10"
+                        }
+                    },
+                    "viz_recent_alerts": {
+                        "type": "splunk.table",
+                        "title": "Recent Security Alerts",
+                        "dataSources": {
+                            "primary": "primary"
+                        },
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where (match(uri_path, \"(?i)(union|select|insert|update|delete)\") OR match(uri_path, \"(\\\\.\\\\./|\\\\.\\\\.)%2f\") OR (status IN (\"401\",\"403\") AND match(uri_path, \"(?i)(login|auth)\"))) | eval alert_type=case(match(uri_path, \"(?i)(union|select)\"), \"SQL Injection\", match(uri_path, \"(\\\\.\\\\./|\\\\.\\\\.)%2f\"), \"Directory Traversal\", status IN (\"401\",\"403\"), \"Authentication Failure\") | sort -_time | head 20 | table _time, src_ip, uri_path, status, alert_type, http_user_agent"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Dashboard: Attack Analysis Deep Dive",
+            "title": "Advanced Attack Analysis Dashboard",
+            "description": "Detailed analysis of specific attack patterns and anomalies",
+            "definition": {
+                "layout": {
+                    "type": "grid",
+                    "structure": [
+                        {
+                            "item": "viz_sql_injection_analysis",
+                            "position": {
+                                "x": 0,
+                                "y": 0,
+                                "w": 12,
+                                "h": 4
+                            }
+                        },
+                        {
+                            "item": "viz_brute_force_timeline",
+                            "position": {
+                                "x": 0,
+                                "y": 4,
+                                "w": 6,
+                                "h": 4
+                            }
+                        },
+                        {
+                            "item": "viz_path_analysis",
+                            "position": {
+                                "x": 6,
+                                "y": 4,
+                                "w": 6,
+                                "h": 4
+                            }
+                        },
+                        {
+                            "item": "viz_user_agent_analysis",
+                            "position": {
+                                "x": 0,
+                                "y": 8,
+                                "w": 12,
+                                "h": 4
+                            }
+                        }
+                    ]
+                },
+                "visualizations": {
+                    "viz_sql_injection_analysis": {
+                        "type": "splunk.table",
+                        "title": "SQL Injection Attack Analysis",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | regex uri_path=\"(?i)(union|select|insert|update|delete|drop|create)\" | eval payload=urldecode(uri_path) | stats count, values(status) as response_codes, earliest(_time) as first_seen, latest(_time) as last_seen by src_ip, payload | sort -count"
+                        }
+                    },
+                    "viz_brute_force_timeline": {
+                        "type": "splunk.area",
+                        "title": "Brute Force Attack Timeline",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where status IN (\"401\",\"403\") OR match(uri_path, \"(?i)(login|signin|auth)\") | bucket _time span=10m | stats count by _time, src_ip | where count > 5 | timechart span=10m sum(count) as failed_attempts"
+                        }
+                    },
+                    "viz_path_analysis": {
+                        "type": "splunk.bubble",
+                        "title": "Suspicious Path Analysis",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | eval path_length=len(uri_path) | where path_length > 100 OR match(uri_path, \"[<>\\\"';()&+%]\") | stats count, avg(path_length) as avg_length by uri_path | where count > 2 | sort -count"
+                        }
+                    },
+                    "viz_user_agent_analysis": {
+                        "type": "splunk.table",
+                        "title": "Suspicious User Agent Analysis",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where match(http_user_agent, \"(?i)(bot|crawler|spider|scraper|scanner|curl|wget|python|perl)\") OR len(http_user_agent) < 10 OR len(http_user_agent) > 500 | stats count, dc(src_ip) as unique_ips, dc(uri_path) as unique_paths by http_user_agent | sort -count | head 20"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Dashboard: Real-time Threat Monitoring",
+            "title": "Real-time Security Monitoring",
+            "description": "Live monitoring dashboard for immediate threat detection",
+            "definition": {
+                "refresh": {
+                    "interval": "30s",
+                    "display": "off"
+                },
+                "time": {
+                    "earliest_time": "-15m",
+                    "latest_time": "now"
+                },
+                "layout": {
+                    "type": "grid",
+                    "structure": [
+                        {
+                            "item": "viz_threat_level",
+                            "position": {
+                                "x": 0,
+                                "y": 0,
+                                "w": 3,
+                                "h": 2
+                            }
+                        },
+                        {
+                            "item": "viz_active_attacks",
+                            "position": {
+                                "x": 3,
+                                "y": 0,
+                                "w": 3,
+                                "h": 2
+                            }
+                        },
+                        {
+                            "item": "viz_blocked_ips",
+                            "position": {
+                                "x": 6,
+                                "y": 0,
+                                "w": 3,
+                                "h": 2
+                            }
+                        },
+                        {
+                            "item": "viz_critical_alerts",
+                            "position": {
+                                "x": 9,
+                                "y": 0,
+                                "w": 3,
+                                "h": 2
+                            }
+                        },
+                        {
+                            "item": "viz_live_feed",
+                            "position": {
+                                "x": 0,
+                                "y": 2,
+                                "w": 12,
+                                "h": 6
+                            }
+                        }
+                    ]
+                },
+                "visualizations": {
+                    "viz_threat_level": {
+                        "type": "splunk.singlevalue",
+                        "title": "Current Threat Level",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | eval attack_score=case(match(uri_path, \"(?i)(union|select)\"), 10, match(uri_path, \"\\\\.\\\\./\"), 8, status IN (\"401\",\"403\"), 5, status=\"404\", 2, 1=1, 0) | stats avg(attack_score) as threat_level | eval threat_status=case(threat_level>7, \"CRITICAL\", threat_level>4, \"HIGH\", threat_level>2, \"MEDIUM\", 1=1, \"LOW\")",
+                            "colorBy": "value",
+                            "colorMode": "categoricalPalette"
+                        }
+                    },
+                    "viz_active_attacks": {
+                        "type": "splunk.singlevalue",
+                        "title": "Active Attack Sessions",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where match(uri_path, \"(?i)(admin|login|sql|script)\") OR status>=400 | bucket _time span=1m | stats dc(src_ip) as active_attackers by _time | sort -_time | head 1"
+                        }
+                    },
+                    "viz_blocked_ips": {
+                        "type": "splunk.singlevalue",
+                        "title": "IPs Requiring Block",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where status>=400 | bucket _time span=5m | stats count by _time, src_ip | where count > 20 | stats dc(src_ip)"
+                        }
+                    },
+                    "viz_critical_alerts": {
+                        "type": "splunk.singlevalue",
+                        "title": "Critical Alerts (Last 15m)",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where match(uri_path, \"(?i)(union|select|insert|update|delete)\") OR match(uri_path, \"(\\\\.\\\\./|\\\\.\\\\.)%2f\") | stats count"
+                        }
+                    },
+                    "viz_live_feed": {
+                        "type": "splunk.table",
+                        "title": "Live Attack Feed",
+                        "options": {
+                            "query": "index=webserver sourcetype=access_combined OR sourcetype=csv_access_logs | where match(uri_path, \"(?i)(admin|login|sql|script)\") OR status>=400 | eval attack_type=case(match(uri_path, \"(?i)(union|select)\"), \"SQL Injection\", match(uri_path, \"\\\\.\\\\./\"), \"Directory Traversal\", match(uri_path, \"(?i)admin\"), \"Admin Access\", status IN (\"401\",\"403\"), \"Auth Failure\", 1=1, \"Suspicious\") | sort -_time | head 50 | table _time, src_ip, uri_path, status, attack_type, http_user_agent",
+                            "drilldown": "cell",
+                            "refresh.display": "progressbar"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

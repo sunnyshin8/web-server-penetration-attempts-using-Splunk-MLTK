@@ -1,0 +1,51 @@
+
+
+# Core Data Analysis Libraries
+pandas>=1.5.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Machine Learning Libraries
+scikit-learn>=1.1.0
+joblib>=1.1.0
+
+# Web Log Analysis
+python-dateutil>=2.8.0
+pytz>=2022.1
+
+# Data Visualization (Optional - for enhanced analysis)
+plotly>=5.0.0
+bokeh>=2.4.0
+
+# Progress Tracking
+tqdm>=4.64.0
+
+# Configuration Management
+configparser>=5.2.0
+
+# HTTP Analysis
+user-agents>=2.2.0
+urllib3>=1.26.0
+
+# Geolocation (Optional)
+geoip2>=4.6.0
+requests>=2.28.0
+
+# Development and Testing
+pytest>=7.0.0
+pytest-cov>=3.0.0
+black>=22.0.0
+flake8>=4.0.0
+
+# Jupyter Notebooks (Optional - for interactive analysis)
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Excel Export (Optional)
+openpyxl>=3.0.0
+xlsxwriter>=3.0.0
+
+# Performance Optimization (Optional)
+numba>=0.56.0
+cython>=0.29.0
